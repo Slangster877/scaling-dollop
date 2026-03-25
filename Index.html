@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GrandMark Workflow OS — SaaS Preview</title>
+  <meta name="theme-color" content="#0b1220" />
+  <style>
+    :root{
+      --bg:#081019;
+      --bg2:#0d1726;
+      --panel:#101c2d;
+      --panel-2:#152338;
+      --panel-3:#182a43;
+      --line:rgba(255,255,255,.08);
+      --line-2:rgba(255,255,255,.14);
+      --text:#edf4ff;
+      --muted:#96a8c4;
+      --subtle:#6e809f;
+      --navy:#10346f;
+      --blue:#3b82f6;
+      --blue-2:#60a5fa;
+      --green:#22c55e;
+      --green-2:#4ade80;
+      --yellow:#f59e0b;
+      --red:#ef4444;
+      --shadow:0 20px 50px rgba(0,0,0,.38);
+      --radius:18px;
+      --radius-sm:12px;
+      --radius-xs:10px;
+      --sidebar:260px;
+      --topbar:72px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:radial-gradient(circle at top left, rgba(59,130,246,.14), transparent 22%), radial-gradient(circle at top right, rgba(34,197,94,.12), transparent 24%), linear-gradient(180deg, #081019 0%, #0a1320 100%);color:var(--text)}
+    body{overflow:hidden}
+    button,input,select,textarea{font:inherit}
+
+    .app{display:grid;grid-template-columns:var(--sidebar) 1fr;height:100%}
+    .sidebar{
+      background:linear-gradient(180deg, rgba(13,23,38,.96), rgba(8,16,25,.94));
+      border-right:1px solid var(--line);
+      backdrop-filter:blur(16px);
+      padding:22px 16px 16px;
+      display:flex;flex-direction:column;gap:18px;
+    }
+    .brand{display:flex;align-items:center;gap:14px;padding:10px 12px;border:1px solid var(--line);background:rgba(255,255,255,.03);border-radius:18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+    .brand-mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,var(--blue),var(--green));display:grid;place-items:center;font-size:22px;font-weight:800;color:white;box-shadow:0 8px 20px rgba(34,197,94,.22)}
+    .brand-copy b{display:block;font-size:15px;letter-spacing:.04em}
+    .brand-copy span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em}
+
+    .section-label{padding:0 12px;font-size:11px;color:var(--subtle);letter-spacing:.16em;text-transform:uppercase;font-weight:700}
+    .nav{display:grid;gap:6px}
+    .nav-btn{appearance:none;border:none;background:transparent;color:var(--muted);padding:12px 12px;border-radius:14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:.18s ease;text-align:left}
+    .nav-btn:hover{background:rgba(255,255,255,.04);color:var(--text)}
+    .nav-btn.active{background:linear-gradient(135deg, rgba(59,130,246,.14), rgba(34,197,94,.1)); border:1px solid rgba(96,165,250,.22); color:#fff; box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+    .nav-btn .dot{width:8px;height:8px;border-radius:50%;background:currentColor;opacity:.8}
+    .nav-btn .badge{margin-left:auto;background:rgba(255,255,255,.06);padding:2px 7px;border-radius:999px;font-size:11px;color:var(--text)}
+
+    .sidebar-footer{margin-top:auto;border:1px solid var(--line);background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border-radius:18px;padding:14px;display:grid;gap:10px}
+    .ai-pill{display:flex;justify-content:space-between;align-items:center}
+    .ai-pill b{font-size:13px}
+    .ai-pill span{font-size:12px;color:var(--muted)}
+    .mini-button{border:none;background:linear-gradient(135deg,var(--blue),#2563eb);color:#fff;border-radius:12px;padding:10px 12px;font-weight:700;cursor:pointer}
+
+    .main{display:grid;grid-template-rows:var(--topbar) 1fr;min-width:0}
+    .topbar{display:flex;align-items:center;gap:14px;padding:0 22px;border-bottom:1px solid var(--line);background:rgba(10,19,32,.72);backdrop-filter:blur(18px)}
+    .search{flex:1;display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:0 14px;height:46px;min-width:120px}
+    .search input{flex:1;background:none;border:none;outline:none;color:var(--text)}
+    .search input::placeholder{color:var(--subtle)}
+    .top-actions{display:flex;align-items:center;gap:10px}
+    .ghost,.primary,.chip{border:none;border-radius:14px;height:42px;padding:0 14px;cursor:pointer}
+    .ghost{background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--line)}
+    .primary{background:linear-gradient(135deg,var(--green),#16a34a);color:#072310;font-weight:800;box-shadow:0 10px 25px rgba(34,197,94,.22)}
+    .avatar{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,#1d4ed8,#22c55e);display:grid;place-items:center;font-weight:800}
+
+    .content{overflow:auto;padding:22px}
+    .view{display:none;gap:18px}
+    .view.active{display:grid}
+
+    .hero{display:grid;grid-template-columns:1.35fr .9fr;gap:18px}
+    .glass{
+      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      position:relative;
+      overflow:hidden;
+    }
+    .glass::before{
+      content:"";position:absolute;inset:0;background:linear-gradient(180deg, rgba(255,255,255,.08), transparent 24%);pointer-events:none;
+    }
+    .hero-card{padding:24px}
+    .eyebrow{display:inline-flex;gap:8px;align-items:center;background:rgba(59,130,246,.12);color:#cbe1ff;border:1px solid rgba(96,165,250,.22);padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700;letter-spacing:.04em}
+    h1{margin:14px 0 10px;font-size:34px;line-height:1.05;letter-spacing:-.03em}
+    .lead{color:var(--muted);max-width:62ch;font-size:14px}
+    .hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+    .stat{padding:16px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.06)}
+    .stat small{display:block;color:var(--subtle);text-transform:uppercase;letter-spacing:.1em;font-weight:700;font-size:10px}
+    .stat b{display:block;font-size:26px;margin:8px 0 4px;letter-spacing:-.03em}
+    .stat span{font-size:12px;color:var(--muted)}
+    .kpi-panel{padding:22px;display:grid;gap:14px;align-content:start}
+    .panel-title{display:flex;justify-content:space-between;align-items:center}
+    .panel-title b{font-size:15px}
+    .panel-title span{font-size:12px;color:var(--muted)}
+    .meter{height:12px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+    .meter > i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--blue),var(--green))}
+    .list{display:grid;gap:10px}
+    .list-row{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.055)}
+    .list-row b{font-size:13px}
+    .list-row span{font-size:12px;color:var(--muted)}
+
+    .grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+    .table-card,.activity-card,.composer,.kanban-card,.calendar-card{padding:18px}
+    .card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .card-head h2{margin:0;font-size:16px;letter-spacing:-.02em}
+    .card-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px 10px;text-align:left}
+    th{font-size:11px;color:var(--subtle);text-transform:uppercase;letter-spacing:.12em;font-weight:700;border-bottom:1px solid var(--line)}
+    td{border-bottom:1px solid rgba(255,255,255,.05);font-size:13px;color:#dce7f8}
+    tr:last-child td{border-bottom:none}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:.04em}
+    .pill.blue{background:rgba(59,130,246,.12);color:#bfd8ff}
+    .pill.green{background:rgba(34,197,94,.14);color:#cbf7da}
+    .pill.yellow{background:rgba(245,158,11,.14);color:#ffe0a6}
+    .pill.red{background:rgba(239,68,68,.14);color:#ffc1c1}
+    .activity{display:grid;gap:12px}
+    .activity-item{display:grid;grid-template-columns:38px 1fr;gap:12px;align-items:start}
+    .iconbox{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg, rgba(59,130,246,.18), rgba(34,197,94,.12));display:grid;place-items:center;border:1px solid rgba(255,255,255,.08)}
+    .activity-item b{display:block;font-size:13px}
+    .activity-item span{display:block;color:var(--muted);font-size:12px;margin-top:3px}
+
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:12px}
+    .toolbar-left,.toolbar-right{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .input, .select, textarea{width:100%;background:rgba(255,255,255,.04);color:var(--text);border:1px solid var(--line);border-radius:14px;padding:12px 14px;outline:none}
+    .input::placeholder, textarea::placeholder{color:var(--subtle)}
+
+    .kanban{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:14px}
+    .column{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:12px}
+    .column-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .column-head b{font-size:13px}
+    .stack{display:grid;gap:10px}
+    .ticket{padding:14px;border-radius:16px;background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));border:1px solid rgba(255,255,255,.07);box-shadow:0 12px 24px rgba(0,0,0,.18)}
+    .ticket h3{margin:0 0 6px;font-size:14px}
+    .ticket p{margin:0;color:var(--muted);font-size:12px}
+    .ticket .row{margin-top:10px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+
+    .calendar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+    .day{padding:16px;border-radius:16px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.06)}
+    .day h3{margin:0 0 10px;font-size:13px}
+    .slot{padding:10px 12px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.05);font-size:12px;margin-bottom:8px}
+    .slot b{display:block;font-size:12px}
+    .slot span{color:var(--muted)}
+
+    .empty-state{padding:18px;border-radius:16px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.12);color:var(--muted);font-size:13px}
+
+    .toast{position:fixed;right:20px;bottom:20px;min-width:260px;max-width:360px;padding:14px 16px;border-radius:16px;background:linear-gradient(180deg, rgba(16,28,45,.96), rgba(10,19,32,.96));border:1px solid rgba(96,165,250,.18);box-shadow:var(--shadow);display:none;z-index:50}
+    .toast.show{display:block;animation:rise .22s ease}
+    .toast b{display:block;margin-bottom:4px}
+    .toast span{font-size:13px;color:var(--muted)}
+    @keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+
+    @media (max-width: 1180px){
+      .hero,.grid-2{grid-template-columns:1fr}
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .kanban{grid-template-columns:repeat(2,minmax(220px,1fr))}
+      .calendar-grid{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width: 920px){
+      body{overflow:auto}
+      .app{grid-template-columns:1fr;height:auto;min-height:100%}
+      .sidebar{display:none}
+      .main{grid-template-rows:auto 1fr}
+      .topbar{position:sticky;top:0;z-index:20;padding:14px;flex-wrap:wrap;height:auto}
+      .content{padding:14px}
+      .stats,.calendar-grid,.kanban{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div class="brand-copy">
+          <b>GrandMark OS</b>
+          <span>Workflow command center</span>
+        </div>
+      </div>
+
+      <div class="section-label">Core</div>
+      <div class="nav">
+        <button class="nav-btn active" data-view="dashboard"><span class="dot"></span> Dashboard <span class="badge">Live</span></button>
+        <button class="nav-btn" data-view="jobs"><span class="dot"></span> Jobs</button>
+        <button class="nav-btn" data-view="schedule"><span class="dot"></span> Schedule</button>
+        <button class="nav-btn" data-view="customers"><span class="dot"></span> Customers</button>
+      </div>
+
+      <div class="section-label">Automation</div>
+      <div class="nav">
+        <button class="nav-btn" data-view="quote"><span class="dot"></span> Quote Builder</button>
+        <button class="nav-btn" data-view="production"><span class="dot"></span> Production</button>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="ai-pill">
+          <div>
+            <b>AI Assist</b>
+            <span>Proofs, summaries, next actions</span>
+          </div>
+          <span class="pill green">ON</span>
+        </div>
+        <button class="mini-button" id="smartAction">Run smart review</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="search">
+          <span>⌕</span>
+          <input id="globalSearch" placeholder="Search jobs, customers, proofs, installs..." />
+        </div>
+        <div class="top-actions">
+          <button class="ghost" id="exportBtn">Export snapshot</button>
+          <button class="primary" id="newJobBtn">+ New job</button>
+          <div class="avatar">SL</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <section class="view active" id="dashboard">
+          <div class="hero">
+            <div class="glass hero-card">
+              <div class="eyebrow">● Live operations · GrandMark Signs</div>
+              <h1>Make it feel like a real SaaS app, not a haunted PowerPoint.</h1>
+              <p class="lead">This is a polished single-file front-end with working navigation, dashboard KPIs, jobs pipeline, schedule board, customer list, quote estimator, and production queue. Clean enough to ship as a GitHub Pages preview without the usual duct tape and sadness.</p>
+              <div class="hero-actions">
+                <button class="primary" data-jump="jobs">Open job board</button>
+                <button class="ghost" data-jump="quote">Build quick quote</button>
+              </div>
+              <div class="stats" style="margin-top:18px">
+                <div class="stat"><small>Open jobs</small><b id="kpiOpen">28</b><span>6 install-ready this week</span></div>
+                <div class="stat"><small>Quoted value</small><b>$84.2k</b><span>Rolling 14-day pipeline</span></div>
+                <div class="stat"><small>Avg. turnaround</small><b>3.2d</b><span>Proof to approval</span></div>
+                <div class="stat"><small>On-time installs</small><b>96%</b><span>Last 30 days</span></div>
+              </div>
+            </div>
+
+            <div class="glass kpi-panel">
+              <div class="panel-title">
+                <b>Production utilization</b>
+                <span>HP Latex + install crews</span>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px"><span>Print queue</span><span>74%</span></div>
+                <div class="meter"><i style="width:74%"></i></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px"><span>Install calendar</span><span>88%</span></div>
+                <div class="meter"><i style="width:88%"></i></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px"><span>Proof capacity</span><span>61%</span></div>
+                <div class="meter"><i style="width:61%"></i></div>
+              </div>
+              <div class="list">
+                <div class="list-row"><div><b>Fastest-moving job</b><span>#GM-24091 · KU @ The Crossing</span></div><span class="pill green">Approved</span></div>
+                <div class="list-row"><div><b>Needs attention</b><span>#GM-24103 · Liberty monument panel</span></div><span class="pill red">Hold</span></div>
+                <div class="list-row"><div><b>Biggest quote</b><span>#GM-24111 · Multi-site monument package</span></div><span class="pill blue">$21.4k</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="glass table-card">
+              <div class="card-head">
+                <div>
+                  <h2>Recent jobs</h2>
+                  <p>Real dashboard rhythm. Not dead buttons wearing a fake mustache.</p>
+                </div>
+                <button class="ghost" data-jump="jobs">View all</button>
+              </div>
+              <table>
+                <thead>
+                  <tr><th>Job</th><th>Client</th><th>Status</th><th>Due</th><th>Value</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>#GM-24111</td><td>Westport Dental</td><td><span class="pill blue">Quoted</span></td><td>Mar 28</td><td>$21,400</td></tr>
+                  <tr><td>#GM-24109</td><td>KU Housing</td><td><span class="pill green">Approved</span></td><td>Mar 29</td><td>$8,920</td></tr>
+                  <tr><td>#GM-24103</td><td>Liberty Hospital</td><td><span class="pill red">Hold</span></td><td>Apr 1</td><td>$4,180</td></tr>
+                  <tr><td>#GM-24096</td><td>Crossroads Flats</td><td><span class="pill yellow">In Production</span></td><td>Apr 2</td><td>$11,730</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="glass activity-card">
+              <div class="card-head">
+                <div>
+                  <h2>Activity feed</h2>
+                  <p>Small details make it feel legit.</p>
+                </div>
+              </div>
+              <div class="activity">
+                <div class="activity-item"><div class="iconbox">✓</div><div><b>Proof approved by KU Housing</b><span>2 minutes ago · routed to production queue</span></div></div>
+                <div class="activity-item"><div class="iconbox">⎙</div><div><b>HP Latex roll assigned</b><span>14 minutes ago · 54" IJ35C with lamination</span></div></div>
+                <div class="activity-item"><div class="iconbox">🗓</div><div><b>Install scheduled</b><span>Tomorrow 10:00 AM · Lenexa crew</span></div></div>
+                <div class="activity-item"><div class="iconbox">⚠</div><div><b>Missing field photo on Liberty job</b><span>Smart review flagged incomplete survey packet</span></div></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="jobs">
+          <div class="glass kanban-card">
+            <div class="card-head">
+              <div>
+                <h2>Jobs pipeline</h2>
+                <p>Drag-and-drop look without the fake broken nonsense.</p>
+              </div>
+              <div class="toolbar-right">
+                <input class="input" id="jobFilter" placeholder="Filter jobs..." style="width:220px" />
+                <button class="ghost" id="addSampleJob">Add sample job</button>
+              </div>
+            </div>
+            <div class="kanban" id="kanbanBoard">
+              <div class="column" data-stage="new">
+                <div class="column-head"><b>New</b><span class="pill blue">4</span></div>
+                <div class="stack">
+                  <div class="ticket" data-text="west plaza channel letters retail"><h3>West Plaza Channel Letters</h3><p>Awaiting site verification</p><div class="row"><span class="pill blue">Quote</span><span>$6,480</span></div></div>
+                  <div class="ticket" data-text="olathe monument panel replace"><h3>Olathe Monument Panel Replace</h3><p>Client sent revised logo</p><div class="row"><span class="pill blue">Draft</span><span>$2,140</span></div></div>
+                </div>
+              </div>
+              <div class="column" data-stage="proof">
+                <div class="column-head"><b>Proofing</b><span class="pill yellow">3</span></div>
+                <div class="stack">
+                  <div class="ticket" data-text="ku the crossing directional sign"><h3>KU @ The Crossing</h3><p>Needs final size confirmation</p><div class="row"><span class="pill yellow">Review</span><span>Due today</span></div></div>
+                  <div class="ticket" data-text="downtown banner set city permit"><h3>Downtown Banner Set</h3><p>Permit copy in progress</p><div class="row"><span class="pill yellow">Pending</span><span>3 items</span></div></div>
+                </div>
+              </div>
+              <div class="column" data-stage="production">
+                <div class="column-head"><b>Production</b><span class="pill green">5</span></div>
+                <div class="stack">
+                  <div class="ticket" data-text="crossroads flats wayfinding package"><h3>Crossroads Flats Wayfinding</h3><p>Print + contour cut + laminate</p><div class="row"><span class="pill green">Print</span><span>54" roll</span></div></div>
+                  <div class="ticket" data-text="lenexa pylon cabinet faces"><h3>Lenexa Pylon Cabinet Faces</h3><p>Fabrication bay 2</p><div class="row"><span class="pill green">Fab</span><span>2 panels</span></div></div>
+                </div>
+              </div>
+              <div class="column" data-stage="install">
+                <div class="column-head"><b>Install</b><span class="pill red">2</span></div>
+                <div class="stack">
+                  <div class="ticket" data-text="liberty hospital donor wall"><h3>Liberty Hospital Donor Wall</h3><p>Truck roll pending field photo</p><div class="row"><span class="pill red">Hold</span><span>Photo needed</span></div></div>
+                  <div class="ticket" data-text="kansas city monument refresh"><h3>Kansas City Monument Refresh</h3><p>Crew booked Thursday</p><div class="row"><span class="pill blue">Scheduled</span><span>10:00 AM</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="schedule">
+          <div class="glass calendar-card">
+            <div class="card-head">
+              <div>
+                <h2>Install schedule</h2>
+                <p>Enough polish to look expensive. Enough clarity to use.</p>
+              </div>
+              <button class="primary" id="shuffleSchedule">Optimize route</button>
+            </div>
+            <div class="calendar-grid" id="calendarGrid">
+              <div class="day"><h3>Wednesday</h3><div class="slot"><b>9:00 AM · KU Housing</b><span>Lawrence · door vinyl + monument panel</span></div><div class="slot"><b>2:30 PM · Crossroads Flats</b><span>KC · wayfinding install walk</span></div></div>
+              <div class="day"><h3>Thursday</h3><div class="slot"><b>10:00 AM · KC Monument Refresh</b><span>Lenexa · reinstall faces</span></div><div class="slot"><b>1:00 PM · Westport Dental</b><span>Proof sign-off + site measure</span></div></div>
+              <div class="day"><h3>Friday</h3><div class="slot"><b>8:30 AM · Liberty Hospital</b><span>Pending field packet completion</span></div><div class="slot"><b>3:00 PM · Shop closeout</b><span>Wrap production staging</span></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="customers">
+          <div class="grid-2">
+            <div class="glass table-card">
+              <div class="card-head"><div><h2>Customers</h2><p>Clean CRM-lite view for previews.</p></div></div>
+              <table>
+                <thead><tr><th>Name</th><th>Location</th><th>Open Jobs</th><th>Last Activity</th></tr></thead>
+                <tbody>
+                  <tr><td>KU Housing</td><td>Lawrence, KS</td><td>2</td><td>Today</td></tr>
+                  <tr><td>Westport Dental</td><td>Kansas City, MO</td><td>1</td><td>Today</td></tr>
+                  <tr><td>Liberty Hospital</td><td>Liberty, MO</td><td>1</td><td>Yesterday</td></tr>
+                  <tr><td>Crossroads Flats</td><td>Kansas City, MO</td><td>3</td><td>Yesterday</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="glass activity-card">
+              <div class="card-head"><div><h2>Customer summary</h2><p>Useful without pretending to be a full CRM.</p></div></div>
+              <div class="list">
+                <div class="list-row"><div><b>Top account this month</b><span>Crossroads Flats · 3 active projects</span></div><span class="pill green">$18.6k</span></div>
+                <div class="list-row"><div><b>Fastest approvals</b><span>KU Housing · avg 1.2 days</span></div><span class="pill blue">Sharp</span></div>
+                <div class="list-row"><div><b>Needs follow-up</b><span>West Plaza retail cluster</span></div><span class="pill yellow">2 quotes</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="quote">
+          <div class="grid-2">
+            <div class="glass composer">
+              <div class="card-head"><div><h2>Quick quote builder</h2><p>Not accounting software. Good enough for a strong front-end demo.</p></div></div>
+              <div class="toolbar-left" style="display:grid;gap:12px">
+                <input class="input" id="clientName" placeholder="Client name" />
+                <input class="input" id="projectType" placeholder="Project type" />
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+                  <input class="input" id="materialCost" type="number" placeholder="Material $" />
+                  <input class="input" id="laborHours" type="number" placeholder="Labor hrs" />
+                  <input class="input" id="installCost" type="number" placeholder="Install $" />
+                </div>
+                <textarea id="quoteNotes" rows="5" placeholder="Notes, scope, caveats, permit assumptions..."></textarea>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button class="primary" id="calcQuote">Generate quote</button>
+                  <button class="ghost" id="resetQuote">Reset</button>
+                </div>
+              </div>
+            </div>
+            <div class="glass composer">
+              <div class="card-head"><div><h2>Quote preview</h2><p>Live output</p></div></div>
+              <div class="list" id="quoteOutput">
+                <div class="empty-state">Fill out the quote inputs and hit <b>Generate quote</b>. The preview updates here.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="production">
+          <div class="glass table-card">
+            <div class="card-head"><div><h2>Production queue</h2><p>Useful visual stack for print / cut / laminate / install-prep.</p></div></div>
+            <div class="list">
+              <div class="list-row"><div><b>Crossroads Flats Wayfinding</b><span>Print → Laminate → Trim</span></div><span class="pill green">Queue 1</span></div>
+              <div class="list-row"><div><b>KU @ The Crossing</b><span>Proof hold → awaiting dimension sign-off</span></div><span class="pill yellow">Review</span></div>
+              <div class="list-row"><div><b>Window Perf Package</b><span>Contour cut registration marks ready</span></div><span class="pill blue">Cut</span></div>
+              <div class="list-row"><div><b>Liberty Donor Wall</b><span>Install packet incomplete</span></div><span class="pill red">Blocked</span></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"><b>Saved.</b><span>Something useful happened for once.</span></div>
+
+  <script>
+    const views = [...document.querySelectorAll('.view')];
+    const navBtns = [...document.querySelectorAll('.nav-btn')];
+    const toast = document.getElementById('toast');
+
+    function showToast(title, message){
+      toast.innerHTML = `<b>${title}</b><span>${message}</span>`;
+      toast.classList.add('show');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => toast.classList.remove('show'), 2400);
+    }
+
+    function activateView(id){
+      views.forEach(v => v.classList.toggle('active', v.id === id));
+      navBtns.forEach(b => b.classList.toggle('active', b.dataset.view === id));
+      window.location.hash = id;
+    }
+
+    navBtns.forEach(btn => btn.addEventListener('click', () => activateView(btn.dataset.view)));
+    document.querySelectorAll('[data-jump]').forEach(btn => btn.addEventListener('click', () => activateView(btn.dataset.jump)));
+
+    const hash = location.hash.replace('#','');
+    if(hash && document.getElementById(hash)) activateView(hash);
+
+    document.getElementById('smartAction').addEventListener('click', () => {
+      showToast('Smart review complete', '1 job flagged for missing field photos. 2 installs confirmed.');
+    });
+
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const data = 'GrandMark Workflow Snapshot\nGenerated: ' + new Date().toLocaleString();
+      const blob = new Blob([data], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'grandmark-workflow-snapshot.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      showToast('Export ready', 'Snapshot downloaded as a text file.');
+    });
+
+    document.getElementById('newJobBtn').addEventListener('click', () => {
+      activateView('quote');
+      showToast('New job flow opened', 'Kick off the job from the quote builder.');
+    });
+
+    document.getElementById('calcQuote').addEventListener('click', () => {
+      const client = document.getElementById('clientName').value.trim() || 'Unnamed client';
+      const project = document.getElementById('projectType').value.trim() || 'General signage project';
+      const materials = Number(document.getElementById('materialCost').value || 0);
+      const laborHours = Number(document.getElementById('laborHours').value || 0);
+      const install = Number(document.getElementById('installCost').value || 0);
+      const notes = document.getElementById('quoteNotes').value.trim() || 'No additional notes.';
+      const laborRate = 95;
+      const labor = laborHours * laborRate;
+      const subtotal = materials + labor + install;
+      const overhead = subtotal * 0.12;
+      const margin = subtotal * 0.22;
+      const total = subtotal + overhead + margin;
+
+      document.getElementById('quoteOutput').innerHTML = `
+        <div class="list-row"><div><b>Client</b><span>${client}</span></div><span class="pill blue">Active</span></div>
+        <div class="list-row"><div><b>Project</b><span>${project}</span></div><span class="pill green">Scope</span></div>
+        <div class="list-row"><div><b>Materials</b><span>Estimated input</span></div><span>$${materials.toLocaleString()}</span></div>
+        <div class="list-row"><div><b>Labor</b><span>${laborHours} hrs @ $${laborRate}/hr</span></div><span>$${labor.toLocaleString()}</span></div>
+        <div class="list-row"><div><b>Install / misc.</b><span>Field + equipment</span></div><span>$${install.toLocaleString()}</span></div>
+        <div class="list-row"><div><b>Overhead</b><span>12%</span></div><span>$${overhead.toFixed(2)}</span></div>
+        <div class="list-row"><div><b>Margin</b><span>22%</span></div><span>$${margin.toFixed(2)}</span></div>
+        <div class="list-row"><div><b>Total quote</b><span>${notes}</span></div><span class="pill green">$${total.toFixed(2)}</span></div>
+      `;
+      showToast('Quote generated', `Estimated total for ${client}: $${total.toFixed(2)}`);
+    });
+
+    document.getElementById('resetQuote').addEventListener('click', () => {
+      ['clientName','projectType','materialCost','laborHours','installCost','quoteNotes'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('quoteOutput').innerHTML = '<div class="empty-state">Quote inputs cleared. Build it again without setting anything on fire.</div>';
+      showToast('Quote reset', 'Inputs cleared.');
+    });
+
+    document.getElementById('jobFilter').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      document.querySelectorAll('.ticket').forEach(ticket => {
+        const hit = ticket.dataset.text.includes(q) || ticket.textContent.toLowerCase().includes(q);
+        ticket.style.display = hit ? '' : 'none';
+      });
+    });
+
+    document.getElementById('addSampleJob').addEventListener('click', () => {
+      const stack = document.querySelector('.column[data-stage="new"] .stack');
+      const card = document.createElement('div');
+      card.className = 'ticket';
+      card.dataset.text = 'sample monument refresh mission style';
+      card.innerHTML = '<h3>Mission Style Monument Refresh</h3><p>Fresh sample job injected into pipeline</p><div class="row"><span class="pill blue">New</span><span>$3,960</span></div>';
+      stack.prepend(card);
+      const counter = document.querySelector('.column[data-stage="new"] .column-head .pill');
+      counter.textContent = String(Number(counter.textContent) + 1);
+      showToast('Sample job added', 'New card dropped into the New column.');
+    });
+
+    document.getElementById('shuffleSchedule').addEventListener('click', () => {
+      const day = document.querySelector('#calendarGrid .day:nth-child(2)');
+      day.querySelector('.slot').innerHTML = '<b>9:30 AM · KC Monument Refresh</b><span>Route optimized to reduce windshield time</span>';
+      showToast('Route optimized', 'Thursday schedule tightened by 38 minutes.');
+    });
+
+    document.getElementById('globalSearch').addEventListener('keydown', (e) => {
+      if(e.key === 'Enter'){
+        activateView('jobs');
+        document.getElementById('jobFilter').value = e.target.value;
+        document.getElementById('jobFilter').dispatchEvent(new Event('input'));
+        showToast('Search applied', `Filtering jobs for “${e.target.value || 'everything'}”.`);
+      }
+    });
+  </script>
+</body>
+</html>
